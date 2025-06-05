@@ -1,0 +1,27 @@
+services:
+  # Backend API service
+  - type: web
+    name: tally-subscriber-manager-api
+    env: docker
+    dockerfilePath: ./docker/Dockerfile
+    dockerContext: .
+    plan: starter
+    envVars:
+      - key: MONGO_URI
+        fromDatabase:
+          name: tally-subscriber-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: GMAIL_ADDRESS
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: TALLY_WEBHOOK_SECRET
+        sync: false
+
+databases:
+  # MongoDB database
+  - name: tally-subscriber-db
+    plan: free
+    type: mongodb
