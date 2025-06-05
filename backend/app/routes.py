@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, make_response
 import hmac
 import hashlib
 import base64
@@ -80,24 +80,44 @@ def tally_webhook():
     
     except Exception as e:
         current_app.logger.error(f"Error processing webhook: {e}")
-        return jsonify({'error': str(e)}), 500
+        error_response = jsonify({'error': str(e)})
+        error_response.headers.add('Access-Control-Allow-Origin', '*')
+        return error_response, 500
 
 # Subscribers routes
-@subscribers_bp.route('/', methods=['GET'])
+@subscribers_bp.route('/', methods=['GET', 'OPTIONS'])
 def get_all_subscribers():
     """
     Get all subscribers
     """
-    active_only = request.args.get('active_only', 'true').lower() == 'true'
-    subscribers = db.get_subscribers(active_only)
-    
-    # Convert ObjectId to string for JSON serialization
-    for subscriber in subscribers:
-        subscriber['_id'] = str(subscriber['_id'])
-    
-    return jsonify(subscribers)
+    if request.method == 'OPTIONS':
+        # Responder a la solicitud preflight
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        response.headers.add('Access-Control-Max-Age', '86400')  # 24 horas
+        return response
+        
+    try:
+        active_only = request.args.get('active_only', 'true').lower() == 'true'
+        subscribers = db.get_subscribers(active_only=active_only)
+        response = jsonify(subscribers)
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+    except Exception as e:
+        current_app.logger.error(f'Error getting subscribers: {str(e)}')
+        error_response = jsonify({'error': 'Internal server error'})
+        error_response.headers.add('Access-Control-Allow-Origin', '*')
+        return error_response, 500   
+        return response
+    except Exception as e:
+        current_app.logger.error(f'Error getting subscribers: {str(e)}')
+        error_response = jsonify({'error': 'Internal server error'})
+        error_response.headers.add('Access-Control-Allow-Origin', '*')
+        return error_response, 500
 
-@subscribers_bp.route('/unsubscribe', methods=['POST'])
+@subscribers_bp.route('/unsubscribe', methods=['POST', 'OPTIONS'])
 def unsubscribe():
     """
     Unsubscribe a user

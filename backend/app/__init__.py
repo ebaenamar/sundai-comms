@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
@@ -8,7 +8,31 @@ load_dotenv()
 def create_app(test_config=None):
     # Create and configure the app
     app = Flask(__name__, instance_relative_config=True)
-    CORS(app)
+    
+    # Configuración de CORS para permitir todas las conexiones
+    CORS(app, resources={
+        r"/*": {
+            "origins": "*",  # Permitir todos los orígenes
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+            "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+            "expose_headers": ["Content-Type", "Content-Length", "Authorization"],
+            "supports_credentials": False,
+            "max_age": 86400,  # Tiempo de caché para las opciones preflight (24 horas)
+            "automatic_options": True  # Manejar automáticamente las opciones
+        }
+    })
+    
+    # Manejar manualmente las solicitudes OPTIONS para evitar redirecciones
+    @app.before_request
+    def handle_options():
+        if request.method == 'OPTIONS':
+            response = app.make_default_options_response()
+            headers = {}
+            headers['Access-Control-Allow-Origin'] = '*'
+            headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
+            headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+            headers['Access-Control-Max-Age'] = '86400'
+            return response, 200, headers
     
     app.config.from_mapping(
         SECRET_KEY=os.environ.get('SECRET_KEY', 'dev'),

@@ -1,14 +1,71 @@
 import axios from 'axios';
 
-// Create axios instance with base URL
-const api = axios.create({
-  baseURL: '/api',
+// URL base de la API - Usar la URL directa para evitar problemas de CORS
+const API_BASE_URL = 'https://tally-subscriber-api.onrender.com';
+
+// Configuración común para todas las solicitudes
+const axiosConfig = {
+  baseURL: `${API_BASE_URL}/api`,
+  timeout: 30000, // 30 segundos de timeout
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+    'X-Requested-With': 'XMLHttpRequest'
+  },
+  withCredentials: false,
+  maxRedirects: 0, // No seguir redirecciones automáticamente
+  validateStatus: (status) => status >= 200 && status < 500 // Considerar códigos de estado 2xx y 3xx como exitosos
+};
+
+// Crear instancia de axios con configuración
+const api = axios.create(axiosConfig);
+
+// Interceptor para manejar redirecciones manualmente
+api.interceptors.request.use(config => {
+  // Asegurarse de que la URL no termine con una barra para evitar redirecciones
+  if (config.url && config.url.endsWith('/')) {
+    config.url = config.url.slice(0, -1);
+  }
+  return config;
 });
+
+// Interceptor para manejar errores
+api.interceptors.response.use(
+  (response) => {
+    // Manejar respuesta exitosa
+    return response;
+  },
+  (error) => {
+    // Manejar errores
+    if (error.response) {
+      // La petición se realizó y el servidor respondió con un código de estado
+      // que está fuera del rango 2xx
+      console.error('Error de respuesta:', error.response.status, error.response.data);
+    } else if (error.request) {
+      // La petición se realizó pero no se recibió respuesta
+      console.error('No se recibió respuesta del servidor:', error.request);
+    } else {
+      // Algo sucedió en la configuración de la petición que generó un error
+      console.error('Error al realizar la petición:', error.message);
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Subscribers API
 export const getSubscribers = async (activeOnly = true) => {
-  const response = await api.get(`/subscribers?active_only=${activeOnly}`);
-  return response.data;
+  // Asegurarse de que no haya barras adicionales en la URL
+  const url = `/subscribers?active_only=${activeOnly}`.replace(/\/+$/, '');
+  try {
+    const response = await api.get(url);
+    return response.data;
+  } catch (error) {
+    console.error('Error en getSubscribers:', error);
+    throw error;
+  }
 };
 
 export const unsubscribe = async (email: string) => {
