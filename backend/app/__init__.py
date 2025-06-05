@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, make_response, current_app, redirect
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 
 load_dotenv()
 
@@ -9,8 +10,15 @@ def create_app(test_config=None):
     # Create and configure the app
     app = Flask(__name__, instance_relative_config=True)
     
-    # Configuración mínima de CORS - El manejo detallado se hará manualmente
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    # Configuración completa de CORS
+    CORS(app, resources={r"/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+        "allow_headers": ["Content-Type", "Authorization", "X-Requested-With", "Cache-Control", "Pragma", "Expires", "X-Forwarded-Proto", "X-Request-ID"],
+        "expose_headers": ["Content-Type", "Content-Length", "Authorization", "X-Requested-With", "X-Request-ID"],
+        "supports_credentials": True,
+        "max_age": 86400
+    }})
     
     # Manejador para solicitudes OPTIONS (preflight)
     @app.before_request
@@ -24,17 +32,6 @@ def create_app(test_config=None):
             response.headers.add('Access-Control-Max-Age', '86400')
             response.headers.add('Vary', 'Origin, Access-Control-Request-Method, Access-Control-Request-Headers')
             return response, 200
-    
-    # Añadir cabeceras CORS a todas las respuestas
-    @app.after_request
-    def add_cors_headers(response):
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Cache-Control, Pragma, Expires, X-Forwarded-Proto, X-Request-ID')
-        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        response.headers.add('Access-Control-Max-Age', '86400')
-        response.headers.add('Vary', 'Origin, Access-Control-Request-Method, Access-Control-Request-Headers')
-        return response
     
     # Configuración de la aplicación
     app.config.from_mapping(
@@ -75,12 +72,12 @@ def create_app(test_config=None):
     app.register_blueprint(newsletter_bp, url_prefix='/api/newsletter')
     
     # Ruta de prueba
-    @app.route('/api/health')
+    @app.route('/health')
     def health_check():
         return jsonify({
             'status': 'ok',
             'message': 'API is running',
-            'environment': app.env
+            'timestamp': datetime.now().isoformat()
         }), 200
 
     return app

@@ -7,13 +7,13 @@ from app import db
 from app.email_service import send_welcome_email, send_newsletter
 import os
 
-# Create blueprints
-webhook_bp = Blueprint('webhook', __name__, url_prefix='/api/webhook')
-subscribers_bp = Blueprint('subscribers', __name__, url_prefix='/api/subscribers')
-newsletter_bp = Blueprint('newsletter', __name__, url_prefix='/api/newsletter')
+# Create blueprints sin prefijos (los prefijos se añadirán al registrar los blueprints)
+webhook_bp = Blueprint('webhook', __name__)
+subscribers_bp = Blueprint('subscribers', __name__)
+newsletter_bp = Blueprint('newsletter', __name__)
 
 # Webhook route to receive Tally form submissions
-@webhook_bp.route('/tally', methods=['POST'])
+@webhook_bp.route('', methods=['POST'])
 def tally_webhook():
     """
     Handle webhook from Tally forms
@@ -85,7 +85,7 @@ def tally_webhook():
         return error_response, 500
 
 # Subscribers routes
-@subscribers_bp.route('/', methods=['GET', 'OPTIONS'])
+@subscribers_bp.route('', methods=['GET', 'OPTIONS'])
 def get_all_subscribers():
     """
     Get all subscribers
