@@ -10,5 +10,8 @@
   ],
   "env": {
     "NEXT_PUBLIC_API_URL": "https://$BACKEND_URL"
+  },
+  "github": {
+    "silent": true
   }
 }
