@@ -37,16 +37,26 @@ source /opt/venv/bin/activate\n\
 exec gunicorn --bind 0.0.0.0:5000 app:create_app()' > /start-flask.sh \
     && chmod +x /start-flask.sh
 
+# Create database initialization script
+RUN mkdir -p /docker-entrypoint-initdb.d
+RUN echo '#!/bin/bash\n\
+echo "Creating tally_subscribers database..."\n\
+psql -U postgres -c "CREATE DATABASE tally_subscribers;"\n\
+echo "Database created successfully."' > /docker-entrypoint-initdb.d/create-db.sh \
+    && chmod +x /docker-entrypoint-initdb.d/create-db.sh
+
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV FLASK_APP=app.py
 ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/tally_subscribers
+ENV POSTGRES_PASSWORD=postgres
 
 # Expose the port
 EXPOSE 5000
 
-# Override the entrypoint to start both PostgreSQL and Flask
-COPY docker/docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["postgres"]
+# Copy custom entrypoint
+COPY docker/docker-entrypoint.sh /usr/local/bin/custom-entrypoint.sh
+RUN chmod +x /usr/local/bin/custom-entrypoint.sh
+
+# Use custom entrypoint
+ENTRYPOINT ["/usr/local/bin/custom-entrypoint.sh"]
