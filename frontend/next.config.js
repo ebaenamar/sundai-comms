@@ -12,6 +12,7 @@ const nextConfig = {
         {
           source: '/api/:path*',
           destination: `${backendUrl}/api/:path*`,
+          basePath: false,
         },
       ];
     }
@@ -38,11 +39,13 @@ const nextConfig = {
         headers: [
           { key: 'Access-Control-Allow-Origin', value: '*' },
           { key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE, OPTIONS, PATCH' },
-          { key: 'Access-Control-Allow-Headers', value: 'X-Requested-With, Content-Type, Authorization, Cache-Control, Pragma, Expires' },
+          { key: 'Access-Control-Allow-Headers', value: 'X-Requested-With, Content-Type, Authorization, Cache-Control, Pragma, Expires, X-Forwarded-Proto' },
           { key: 'Access-Control-Allow-Credentials', value: 'true' },
           { key: 'Access-Control-Max-Age', value: '86400' },
           { key: 'Access-Control-Expose-Headers', value: 'Content-Type, Content-Length, Authorization, X-Requested-With' },
-          { key: 'Vary', value: 'Origin, Access-Control-Request-Method, Access-Control-Request-Headers' }
+          { key: 'Vary', value: 'Origin, Access-Control-Request-Method, Access-Control-Request-Headers' },
+          { key: 'X-Forwarded-Proto', value: 'https' },
+          { key: 'X-Forwarded-Ssl', value: 'on' }
         ],
       },
     ];

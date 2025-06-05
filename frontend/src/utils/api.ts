@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// URL base de la API - Usar la URL directa para evitar problemas de CORS
+// URL base de la API - Usar la URL directa con HTTPS para evitar problemas de CORS
 const API_BASE_URL = 'https://tally-subscriber-api.onrender.com';
 
 // Configuración común para todas las solicitudes
@@ -10,10 +10,15 @@ const axiosConfig = {
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'X-Requested-With': 'XMLHttpRequest'
+    'X-Requested-With': 'XMLHttpRequest',
+    'X-Forwarded-Proto': 'https' // Forzar HTTPS
   },
   withCredentials: false,
   maxRedirects: 0, // No seguir redirecciones automáticamente
+  httpsAgent: new (require('https').Agent)({ 
+    rejectUnauthorized: false, // Solo para desarrollo
+    keepAlive: true
+  }),
   validateStatus: (status) => status >= 200 && status < 500 // Considerar códigos de estado 2xx y 3xx como exitosos
 };
 
@@ -22,13 +27,23 @@ const api = axios.create(axiosConfig);
 
 // Interceptor para manejar redirecciones manualmente
 api.interceptors.request.use(config => {
+  // Asegurarse de que la URL use HTTPS
+  if (config.url && config.url.startsWith('http://')) {
+    config.url = config.url.replace('http://', 'https://');
+  }
+  
+  // Asegurarse de que la URL base use HTTPS
+  if (config.baseURL && config.baseURL.startsWith('http://')) {
+    config.baseURL = config.baseURL.replace('http://', 'https://');
+  }
+  
   // Asegurarse de que la URL no termine con una barra para evitar redirecciones
   if (config.url && config.url.endsWith('/')) {
     config.url = config.url.slice(0, -1);
   }
   
   // Agregar parámetros de caché solo para solicitudes GET
-  if (config.method === 'get') {
+  if (config.method === 'get' || !config.method) {
     config.params = {
       ...config.params,
       _t: Date.now() // Evitar caché del navegador

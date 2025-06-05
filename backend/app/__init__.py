@@ -22,6 +22,14 @@ def create_app(test_config=None):
         }
     })
     
+    # Forzar HTTPS en producción
+    @app.before_request
+    def force_https():
+        # Solo en producción
+        if request.url.startswith('http://'):
+            url = request.url.replace('http://', 'https://', 1)
+            return redirect(url, code=301)
+    
     # Manejar manualmente las solicitudes OPTIONS para evitar redirecciones
     @app.before_request
     def handle_options():
@@ -30,10 +38,12 @@ def create_app(test_config=None):
             headers = {}
             headers['Access-Control-Allow-Origin'] = '*'
             headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
-            headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With, Cache-Control, Pragma, Expires, X-Requested-With, X-Request-ID'
+            headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With, Cache-Control, Pragma, Expires, X-Forwarded-Proto, X-Request-ID'
             headers['Access-Control-Expose-Headers'] = 'Content-Type, Content-Length, Authorization, X-Requested-With, X-Request-ID'
             headers['Access-Control-Max-Age'] = '86400'
             headers['Vary'] = 'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+            headers['X-Forwarded-Proto'] = 'https'
+            headers['X-Forwarded-Ssl'] = 'on'
             return response, 200, headers
     
     app.config.from_mapping(
