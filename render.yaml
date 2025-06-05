@@ -3,11 +3,11 @@ services:
   - type: web
     name: tally-subscriber-manager-api
     env: docker
-    dockerfilePath: ./docker/Dockerfile
+    dockerfilePath: ./Dockerfile
     dockerContext: .
     plan: starter
     envVars:
-      - key: MONGO_URI
+      - key: DATABASE_URL
         fromDatabase:
           name: tally-subscriber-db
           property: connectionString
@@ -21,7 +21,7 @@ services:
         sync: false
 
 databases:
-  # MongoDB database
+  # PostgreSQL database
   - name: tally-subscriber-db
     plan: free
-    type: mongodb
+    type: postgres
