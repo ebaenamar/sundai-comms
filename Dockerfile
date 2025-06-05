@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     python3-venv \
+    python3-full \
     supervisor \
     procps \
     && apt-get clean \
@@ -12,11 +13,16 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
+# Create and activate virtual environment
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
 # Copy requirements first for better caching
 COPY backend/requirements.txt .
 
-# Install dependencies
-RUN pip3 install --no-cache-dir -r requirements.txt
+# Install dependencies in the virtual environment
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application
 COPY backend/ .
@@ -27,6 +33,7 @@ COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Create script to initialize the application after PostgreSQL is ready
 RUN echo '#!/bin/bash\n\
 echo "Starting Flask application..."\n\
+source /opt/venv/bin/activate\n\
 exec gunicorn --bind 0.0.0.0:5000 app:create_app()' > /start-flask.sh \
     && chmod +x /start-flask.sh
 

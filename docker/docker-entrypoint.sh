@@ -4,6 +4,9 @@ set -e
 # This script is based on the official postgres docker-entrypoint.sh
 # but modified to also start our Flask application
 
+# Activate Python virtual environment
+source /opt/venv/bin/activate
+
 # Create the database if it doesn't exist
 if [ "$1" = 'postgres' ]; then
     # Call the original entrypoint script from postgres image
