@@ -1,0 +1,30 @@
+{
+  "exported_at": "2025-06-05T16:59:01.523790",
+  "subscribers": [
+    {
+      "_id": "93c888cf-50d6-47c8-8548-5ee81c67b775",
+      "active": true,
+      "data": {
+        "email": "test@example.com",
+        "name": "Test User"
+      },
+      "email": "test@example.com",
+      "name": "Test User",
+      "subscribed_at": "Thu, 05 Jun 2025 16:21:50 GMT",
+      "updated_at": "Thu, 05 Jun 2025 16:21:50 GMT"
+    },
+    {
+      "_id": "0f7c6e0f-499a-453a-b83b-a0a320341f3e",
+      "active": true,
+      "data": {
+        "email": "test2@example.com",
+        "name": "Test User 2"
+      },
+      "email": "test2@example.com",
+      "name": "Test User 2",
+      "subscribed_at": "Thu, 05 Jun 2025 16:50:58 GMT",
+      "updated_at": "Thu, 05 Jun 2025 16:50:58 GMT"
+    }
+  ],
+  "submissions": []
+}

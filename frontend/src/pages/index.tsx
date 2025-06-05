@@ -7,7 +7,6 @@ export default function Home() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [webhookUrl, setWebhookUrl] = useState('...');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -27,12 +26,7 @@ export default function Home() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    // Update webhook URL after component mounts to avoid hydration mismatch
-    if (typeof window !== 'undefined') {
-      setWebhookUrl(`${window.location.origin}/api/webhook/tally`);
-    }
-  }, []);
+  // Removed webhook URL effect
 
   return (
     <Layout title="Dashboard - Tally Subscriber Manager">
@@ -44,7 +38,7 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Subscribers count card */}
           <div className="card">
             <h2 className="text-lg font-medium text-gray-900">Total Subscribers</h2>
@@ -55,17 +49,6 @@ export default function Home() {
               <Link href="/subscribers" className="text-sm text-blue-600 hover:text-blue-800">
                 View all subscribers →
               </Link>
-            </div>
-          </div>
-
-          {/* Tally integration card */}
-          <div className="card">
-            <h2 className="text-lg font-medium text-gray-900">Tally Integration</h2>
-            <p className="mt-2 text-sm text-gray-500">
-              Set up your Tally form to send submissions to this webhook URL:
-            </p>
-            <div className="mt-2 p-2 bg-gray-100 rounded text-sm font-mono break-all">
-              {webhookUrl}
             </div>
           </div>
 

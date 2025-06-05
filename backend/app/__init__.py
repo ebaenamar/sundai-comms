@@ -14,11 +14,11 @@ def create_app(test_config=None):
         r"/*": {
             "origins": "*",  # Permitir todos los orígenes
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-            "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
-            "expose_headers": ["Content-Type", "Content-Length", "Authorization"],
+            "allow_headers": ["*"],  # Permitir todas las cabeceras
+            "expose_headers": ["*"],  # Exponer todas las cabeceras
             "supports_credentials": False,
-            "max_age": 86400,  # Tiempo de caché para las opciones preflight (24 horas)
-            "automatic_options": True  # Manejar automáticamente las opciones
+            "max_age": 86400,  # 24 horas
+            "automatic_options": True
         }
     })
     
@@ -30,8 +30,10 @@ def create_app(test_config=None):
             headers = {}
             headers['Access-Control-Allow-Origin'] = '*'
             headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
-            headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+            headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With, Cache-Control, Pragma, Expires, X-Requested-With, X-Request-ID'
+            headers['Access-Control-Expose-Headers'] = 'Content-Type, Content-Length, Authorization, X-Requested-With, X-Request-ID'
             headers['Access-Control-Max-Age'] = '86400'
+            headers['Vary'] = 'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
             return response, 200, headers
     
     app.config.from_mapping(

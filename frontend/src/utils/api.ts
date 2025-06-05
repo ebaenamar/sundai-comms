@@ -10,9 +10,6 @@ const axiosConfig = {
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'Cache-Control': 'no-cache, no-store, must-revalidate',
-    'Pragma': 'no-cache',
-    'Expires': '0',
     'X-Requested-With': 'XMLHttpRequest'
   },
   withCredentials: false,
@@ -29,6 +26,15 @@ api.interceptors.request.use(config => {
   if (config.url && config.url.endsWith('/')) {
     config.url = config.url.slice(0, -1);
   }
+  
+  // Agregar parámetros de caché solo para solicitudes GET
+  if (config.method === 'get') {
+    config.params = {
+      ...config.params,
+      _t: Date.now() // Evitar caché del navegador
+    };
+  }
+  
   return config;
 });
 

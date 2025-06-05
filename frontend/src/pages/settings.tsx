@@ -9,7 +9,9 @@ export default function SettingsPage() {
   // Get the webhook URL
   useState(() => {
     if (typeof window !== 'undefined') {
-      setWebhookUrl(`${window.location.origin}/api/webhook/tally`);
+      // Use the backend URL from environment variable or fallback to a default
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://tally-subscriber-api.onrender.com';
+      setWebhookUrl(`${apiBaseUrl}/api/webhook/tally`);
     }
   });
 
@@ -100,7 +102,7 @@ export default function SettingsPage() {
           <div className="mt-4">
             <h3 className="text-md font-medium text-gray-900">Required Environment Variables:</h3>
             <ul className="mt-2 space-y-2 text-sm text-gray-600 list-disc pl-5">
-              <li><code className="bg-gray-100 px-1 py-0.5 rounded">MONGO_URI</code>: MongoDB connection string</li>
+              <li><code className="bg-gray-100 px-1 py-0.5 rounded">DATABASE_URL</code>: PostgreSQL connection string</li>
             </ul>
           </div>
         </div>
