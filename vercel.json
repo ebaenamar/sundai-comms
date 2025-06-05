@@ -1,6 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "cd frontend && npm install && npm run build",
+  "buildCommand": "npm install && npm run build",
+  "installCommand": "npm install",
   "outputDirectory": "frontend/.next",
   "rewrites": [
     {
@@ -8,9 +9,6 @@
       "destination": "https://$BACKEND_URL/api/:path*"
     }
   ],
-  "env": {
-    "NEXT_PUBLIC_API_URL": "https://$BACKEND_URL"
-  },
   "github": {
     "silent": true
   }
