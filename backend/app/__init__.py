@@ -12,9 +12,9 @@ def create_app(test_config=None):
     # Configuración mínima de CORS - El manejo detallado se hará manualmente
     CORS(app, resources={r"/*": {"origins": "*"}})
     
+    # Manejador para solicitudes OPTIONS (preflight)
     @app.before_request
-    def handle_cors():
-        # Si es una solicitud OPTIONS, responder inmediatamente con las cabeceras CORS
+    def handle_options():
         if request.method == 'OPTIONS':
             response = make_response()
             response.headers.add('Access-Control-Allow-Origin', '*')
@@ -24,24 +24,34 @@ def create_app(test_config=None):
             response.headers.add('Access-Control-Max-Age', '86400')
             response.headers.add('Vary', 'Origin, Access-Control-Request-Method, Access-Control-Request-Headers')
             return response, 200
-            
-        # Añadir cabeceras CORS a todas las respuestas
-        @app.after_request
-        def add_cors_headers(response):
-            response.headers.add('Access-Control-Allow-Origin', '*')
-            response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Cache-Control, Pragma, Expires, X-Forwarded-Proto, X-Request-ID')
-            response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
-            response.headers.add('Access-Control-Allow-Credentials', 'true')
-            response.headers.add('Access-Control-Max-Age', '86400')
-            response.headers.add('Vary', 'Origin, Access-Control-Request-Method, Access-Control-Request-Headers')
-            return response
     
-    # El manejo de OPTIONS ahora se hace en force_https
+    # Añadir cabeceras CORS a todas las respuestas
+    @app.after_request
+    def add_cors_headers(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Cache-Control, Pragma, Expires, X-Forwarded-Proto, X-Request-ID')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        response.headers.add('Access-Control-Max-Age', '86400')
+        response.headers.add('Vary', 'Origin, Access-Control-Request-Method, Access-Control-Request-Headers')
+        return response
     
+    # Configuración de la aplicación
     app.config.from_mapping(
         SECRET_KEY=os.environ.get('SECRET_KEY', 'dev'),
         MONGO_URI=os.environ.get('MONGO_URI', 'mongodb://localhost:27017/tally_subscribers'),
+        PROPAGATE_EXCEPTIONS=True
     )
+    
+    # Manejador de errores global
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        app.logger.error(f'Error no manejado: {str(e)}', exc_info=True)
+        return jsonify({
+            'error': 'Internal Server Error',
+            'message': 'Ocurrió un error interno en el servidor',
+            'details': str(e) if app.debug else None
+        }), 500
 
     if test_config is None:
         # Load the instance config, if it exists, when not testing
