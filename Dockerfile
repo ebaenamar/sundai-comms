@@ -1,11 +1,12 @@
-FROM python:3.9-slim
+FROM postgres:14
 
-# Install PostgreSQL and required packages
+# Install Python and required packages
 RUN apt-get update && apt-get install -y \
-    postgresql \
-    postgresql-contrib \
-    libpq-dev \
+    python3 \
+    python3-pip \
+    python3-venv \
     supervisor \
+    procps \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -15,31 +16,30 @@ WORKDIR /app
 COPY backend/requirements.txt .
 
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application
 COPY backend/ .
 
 # Copy configuration files
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY docker/init-db.sh /docker-entrypoint-initdb.d/
-COPY docker/start.sh /start.sh
 
-# Make scripts executable
-RUN chmod +x /docker-entrypoint-initdb.d/init-db.sh /start.sh
+# Create script to initialize the application after PostgreSQL is ready
+RUN echo '#!/bin/bash\n\
+echo "Starting Flask application..."\n\
+exec gunicorn --bind 0.0.0.0:5000 app:create_app()' > /start-flask.sh \
+    && chmod +x /start-flask.sh
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV FLASK_APP=app.py
-ENV PGDATA=/var/lib/postgresql/data
 ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/tally_subscribers
-
-# Create directory for PostgreSQL data
-RUN mkdir -p /var/lib/postgresql/data \
-    && chown -R postgres:postgres /var/lib/postgresql/data
 
 # Expose the port
 EXPOSE 5000
 
-# Start services using supervisord
-CMD ["/start.sh"]
+# Override the entrypoint to start both PostgreSQL and Flask
+COPY docker/docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["postgres"]
