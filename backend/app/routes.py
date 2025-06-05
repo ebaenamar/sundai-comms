@@ -94,10 +94,33 @@ def get_all_subscribers():
         # Responder a la solicitud preflight
         response = make_response()
         response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Cache-Control, Pragma, Expires, X-Forwarded-Proto, X-Request-ID')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
         response.headers.add('Access-Control-Max-Age', '86400')  # 24 horas
+        response.headers.add('Vary', 'Origin, Access-Control-Request-Method, Access-Control-Request-Headers')
         return response
+        
+    try:
+        # Obtener parámetros de consulta
+        active_only = request.args.get('active_only', 'true').lower() == 'true'
+        
+        # Obtener suscriptores de la base de datos
+        subscribers = db.get_subscribers(active_only=active_only)
+        
+        # Devolver los suscriptores como JSON
+        return jsonify({
+            'success': True,
+            'data': subscribers,
+            'count': len(subscribers)
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Error getting subscribers: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
         
     try:
         active_only = request.args.get('active_only', 'true').lower() == 'true'

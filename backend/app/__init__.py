@@ -68,8 +68,19 @@ def create_app(test_config=None):
 
     # Register blueprints
     from app.routes import webhook_bp, subscribers_bp, newsletter_bp
-    app.register_blueprint(webhook_bp)
-    app.register_blueprint(subscribers_bp)
-    app.register_blueprint(newsletter_bp)
+    
+    # Registrar blueprints con sus prefijos de URL
+    app.register_blueprint(webhook_bp, url_prefix='/api/webhook')
+    app.register_blueprint(subscribers_bp, url_prefix='/api/subscribers')
+    app.register_blueprint(newsletter_bp, url_prefix='/api/newsletter')
+    
+    # Ruta de prueba
+    @app.route('/api/health')
+    def health_check():
+        return jsonify({
+            'status': 'ok',
+            'message': 'API is running',
+            'environment': app.env
+        }), 200
 
     return app
